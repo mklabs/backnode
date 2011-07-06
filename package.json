@@ -7,13 +7,17 @@
   "homepage": "https://github.com/mklabs/backnode",
   "repository": {
 	"type": "git",
-	"url": "git://github.com/mklabs/backnode.git"
+	  "url": "git://github.com/mklabs/backnode.git"
   },
+  "main": "lib/backnode",
   "engines": {
 	  "node": ">= 0.4.1 < 0.5.0"
   },
   "dependencies": {
-	"connect": "1.5.1",
-	"backbone": "0.5.1"
+	  "connect":    "1.5.1",
+	  "backbone":   "0.5.1",
+	  "underscore": ">=1.1.2",
+	  "mustache":   "0.3.1-dev",
+    "github-flavored-markdown": "1.0.0"
   }
 }

@@ -37,6 +37,9 @@ some template string (with an eventual compilation step), data and returns a new
 
 * There's no DOM. Router, Model actually can live outside of a browser scope as is, no direct dependencies on document or other stuff. That's not the case of Views, may need a rewrite from the bottom-up.
 * Views: commenting in View constructor `ensureElements` and `delegatesEvent` do the trick.
+  * Views are completely overiden using extends/inherits technique from Backbone source, we provide our own View.
+* Model Persitence: quick test at syncing from the filesystem. Had to expose the whole Backbone lib to be able to override Backbone.Sync.
+* Components needs access to req/res/next namely to end reponse and to pass control over next middlewares, router and views get attached these objects upon each requests. Views must attached to Routers to get access to these.
 
 ## Notes
 
@@ -44,6 +47,7 @@ some template string (with an eventual compilation step), data and returns a new
 * Makes few assumptions of what you need and don't when there is no DOM (no events delegation for Views, 
 no model/view auto re-rendering when model changes, ...). On the other hand, on the server-side, you'll most likely need some sort of layout management and rendering (view compositions). Would be nice to have something that relies on Class and Inheritence to provide basic template inheritence.
 * This is quick implementation
+* So far, sounds pretty cool to implement a node app using Backbone to handle not only models (and validations and so on), but also request handling using regular Routers and view rendering using a slight variation of Backbone's.
 
 ## Basic Usage
 
@@ -162,9 +166,8 @@ connect.createServer()
 	* params from req.params are retrieved from the request and pass to the handler function when invoked (`action: function(param, secondParam){}`)
 	* router instance is given req, res object and next function. Updated on incoming request.
 		* ex to end the response from a router: this.res.end('Response ended');
-		
-
-
+* Views: Views are not templates themselves. They're a control class that handles the presentation for a model. However, in a node context, They don't take tag, el, className, ...
+* Models & Collections: As long as Backbone.sync is correctly implemented (example in this repo use the filesystem), works pretty fine.
 
 
 ## Special Thanks
