@@ -37,8 +37,11 @@ var Router = Backnode.Router.extend({
 		// constructor/initialize new Router([options])
 		
 		// model may be Collections as well
-		this.model = new Page();
-		// this.view = new PageView({model: this.model});
+		this.model = new Page({content: '## foo\n barr', title: 'foobar'});
+		this.model.set({foobar: 'totallyfoobar'});
+				
+		this.view = new PageView({model: this.model});
+		
 	},
 	
 	about: function() {
@@ -46,9 +49,9 @@ var Router = Backnode.Router.extend({
 	},
 	
 	search: function(page, query) {
-		console.log('Search actions: ', this.model);
-		
-		this.res.end('Search actions' + page + query);
+		console.log('Search actions: ', this.model, this.view);
+				
+		this.view.render();
 	},
 	post: function(post) {},
 	tag: function(tag) {}
@@ -76,15 +79,16 @@ var PageView = Backnode.View.extend({
 	initialize: function(options) {
 		// usually a filesystem call to get template string content.
 		// If Views are initialized at server startup time, sync calls are fine
-		
+				
 		// otherwise, could be wise to scans the entire package at startup, compile views and keeps
 		// reference to either compiled function or template string for later use
-		this.templateStr = fs.readfileSync('page.html').toString();
+		this.templateStr = fs.readFileSync('page.html').toString();
 	},
 
 	render: function() {
 		// end the reponse
-		this.res.render(this.template(this.model.toJSON()));
+		console.log('Model: ', this.model.toJSON());
+		this.res.end(this.template(this.model.toJSON()));
 		
 		// or call next middlewares...
 		// this.next();

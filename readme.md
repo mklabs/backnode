@@ -36,10 +36,11 @@ some template string (with an eventual compilation step), data and returns a new
 ##### and problems to be solved
 
 * There's no DOM. Router, Model actually can live outside of a browser scope as is, no direct dependencies on document or other stuff. That's not the case of Views, may need a rewrite from the bottom-up.
+* Views: commenting in View constructor `ensureElements` and `delegatesEvent` do the trick.
 
 ## Notes
 
-* Backnode goals it to mimick the Backbone API and provides a Backbone way of doing things in node.
+* Backnode goals it to mimic the Backbone API and provides a Backbone way of doing things in node.
 * Makes few assumptions of what you need and don't when there is no DOM (no events delegation for Views, 
 no model/view auto re-rendering when model changes, ...). On the other hand, on the server-side, you'll most likely need some sort of layout management and rendering (view compositions). Would be nice to have something that relies on Class and Inheritence to provide basic template inheritence.
 * This is quick implementation
