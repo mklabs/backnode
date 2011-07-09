@@ -10,9 +10,15 @@ Backnode hooks in the request/response paradigm in node using either connect or 
 
 ## Installation
 
-once npm published
+    git clone https://github.com/mklabs/backnode
+    cd backnoe
+    npm link
 
-	npm install backnode
+cd to any other directory, at the root of your project, run
+
+    npm link
+    
+or just create a node_modules folder at the root of the repo and git clone into it.
 
 ## Motivation
 
@@ -58,64 +64,41 @@ no model/view auto re-rendering when model changes, ...). On the other hand, on 
 
 // This is a quick implementation of basic example of what a backnode app could look like
 
-// Needs to figure out - 
-// how do we hook up in the request/response lifecycle time? 
-// in connect, express apps, actions gets request, response, next as funcion parameters
-// and would break Backbone API. May we put according object req/res/next (and taking care of updating
-// references for each request, will be overkill, performance-costly? may use EventEmitter for that
-// at the middleware level.)
-
-// we basically needs a way to acces them, one way or another. needs acess to request, response object, 
-// namely for being able to end the response. needs access to next() method as well, important to pass request
-// to following middleware if the response is not ended.
-
-// if the setup of req/res/next is done using class attributes, do we need to put them in Router(at least), Views
-// and Models? Models pretty sure that we shouldn't.
-
-// Error handling, cannot just throw. Use of this.next(err);
-
 var Backnode = require('backnode'),
+Backbone = Backnode.Backbone,
+_ = require('underscore'),
 connect = require('connect'),
 Mustache = require('mustache'),
+md = require('github-flavored-markdown').parse,
 fs = require('fs');
 
+// Router - handle incoming request
 var Router = Backnode.Router.extend({
-	routes: {
-		'about':             	'about',    // /about
-		'blog/:post':        	'post',  	// /blog/blog-post
-		'blog/tag/:tag': 		'tag',   	// /blog/tag/node
-		'search/:page/p:query': 'search'
-	},
+  routes: {
+    'about':  'about',
+    'search/:page/p:query': 'search'
+  },
 
-	initialize: function() {
-		console.log('Initialize: ', this.routes, arguments);
-		// constructor/initialize new Router([options])
+  // constructor/initialize. ex: new Router([options])
+  initialize: function initialize() {
+    console.log('Initialize: ', this.routes, arguments);
 
-		// model may be Collections as well
-		this.model = new Page();
-		// this.view = new PageView({model: this.model});
-	},
+    // model may be Collections as well
+    this.model = new Pages();
+    this.view = new PageView({model: this.model});
+  },
 
-	about: function() {
-		// action, do something, usually generates response and res.end
-	},
+  about: function about() {
+    // action, do something, usually generates response and res.end
+    this.model.doSomething();
+    this.view.render();
+  },
 
-	search: function(page, query) {
-		console.log('Search actions: ', this.model);
-
-		this.res.end('Search actions' + page + query);
-	},
-	post: function(post) {},
-	tag: function(tag) {}
+  search: function search(page, query) {
+    console.log('Search actions: ', this.model);
+    this.res.end('Search actions' + page + query);
+  }
 });
-
-
-// will have to override sync, when fetching/saving we no longer
-// issues REST request to talk to the server, we already are the server
-
-// Instead, could think of various adapters to handle persistence (mongo
-// redis, couch, in memory, filesystem, ...)
-var Page = Backnode.Model.extend({});
 
 // PageView - Backbone.View
 
@@ -123,42 +106,95 @@ var Page = Backnode.Model.extend({});
 // specify your template string.
 var PageView = Backnode.View.extend({
 
-	// Cache the template function for a single page.
-	template: function(data) {
-		return Mustache.to_html(this.templateStr, data); 
-	},
+  // Cache the template function for a single page.
+  template: function template(data) {
+    return Mustache.to_html(this.templateStr, data); 
+  },
 
-	initialize: function(options) {
-		// usually a filesystem call to get template string content.
-		// If Views are initialized at server startup time, sync calls are fine
+  initialize: function initialize(options) {
+    // usually a filesystem call to get template string content.
+    // If Views are initialized at server startup time, sync calls are fine
 
-		// otherwise, could be wise to scans the entire package at startup, compile views and keeps
-		// reference to either compiled function or template string for later use
-		this.templateStr = fs.readfileSync('page.html').toString();
-	},
+    this.templateStr = fs.readFileSync('page.html').toString();
+  },
 
-	render: function() {
-		// end the reponse
-		this.res.render(this.template(this.model.toJSON()));
+  // render - end the response or call this.next()
+  render: function render(model) {
+    model = model || this.model;
 
-		// or call next middlewares...
-		// this.next();
-	}
+    // model must be a collection (to use the same template)
+    model = model instanceof Backnode.Model ? new Pages(model) : model;
+    this.res.end(this.template(model.toJSON()));
+  }
 });
+
+var Page = Backnode.Model.extend({
+  toJSON: function toJSON() {
+    var page = Backnode.Model.prototype.toJSON.apply(this, arguments);        
+    page.content = md(page.content);
+    return page;
+  }
+});
+
+
+var Pages = Backnode.Collection.extend({
+  model: Page,
+
+  // when created (at server startup), get the list of all pages from the file system
+  // and init the collection. Only called once, and on server startup, go sync
+  initialize: function() {
+    this.fetch();
+  },
+
+  toJSON: function() {
+    var json = Backnode.Collection.prototype.toJSON.apply(this, arguments);    
+    return {
+      title: 'Backbone on top of Connect for delicious applications',
+      pages: json
+    };
+  },
+
+  getFile: function(file) {
+    return this.filter(function(page) {
+      return page.get('file') === file;
+    })[0];
+  },
+
+  comparator: function(page) {
+    return page.get('file');
+  }
+});
+
+// Override `Backbone.sync`
+
+// The method signature of Backbone.sync is sync(method, model, [options])
+
+// * method – the CRUD method ("create", "read", "update", or "delete")
+// * model – the model to be saved (or collection to be read)
+// * options – success and error callbacks
+
+Backbone.sync = function(method, model, options, error) {
+  if(method === "read") {
+    // impl something
+  } else if(method === "create") {
+    
+  } else if(method === "update") {
+    
+  } else if(method === "delete") {
+    
+  }
+};
 
 
 // a basic connect stack with a backnode middleware
 // it is the server version of a $(function() { new Router(); Backbone.history.start(); })
 connect.createServer()
-	.use(connect.logger())
-	.use(Backnode(Router))
-	.use(connect.directory(__dirname))
-	.use(connect.static(__dirname))
-	.listen(4000);
+  .use(connect.logger())
+  .use(Backnode(new Router))
+  .use(connect.directory(__dirname))
+  .use(connect.static(__dirname))
+  .listen(4000);
 ```
-
-
-
 
 ## Complete (or nearly)
 
@@ -172,8 +208,6 @@ connect.createServer()
 
 ## Special Thanks
 
-ThxThxThx
-
-* Backbone authors
-* connect/express authors
-* node
+* [Backbone](https://github.com/documentcloud/backbone) [authors](https://github.com/jashkenas)
+* [connect](https://github.com/senchalabs/connect)/[express](https://github.com/visionmedia/express) authors
+* node.. ♥ ♥ ♥
