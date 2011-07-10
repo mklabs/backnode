@@ -39,11 +39,11 @@ some template string (with an eventual compilation step), data and returns a new
 
 ##### and problems to be solved
 
-* There's no DOM. Router, Model actually can live outside of a browser scope as is, no direct dependencies on document or other stuff. That's not the case of Views, may need a rewrite from the bottom-up.
+* There's no DOM. Router, Model actually can live outside of a browser scope as is, no direct dependencies on document or other stuff. That's not the case of Views.
 * Views: commenting in View constructor `ensureElements` and `delegatesEvent` do the trick.
   * Views are completely overiden using extends/inherits technique from Backbone source, we provide our own View.
 * Model Persitence: quick test at syncing from the filesystem. Had to expose the whole Backbone lib to be able to override Backbone.Sync.
-* Components needs access to req/res/next namely to end reponse and to pass control over next middlewares, router and views get attached these objects upon each requests. Views must attached to Routers to get access to these.
+* Components needs access to req/res/next namely to end reponse and to pass control over next middlewares, router and views get attached these objects upon each requests. Views must be attached to Routers to get access to these.
 
 ## Notes
 
@@ -59,142 +59,142 @@ no model/view auto re-rendering when model changes, ...). On the other hand, on 
 
 You may need to install the missing package manually if needed.
 
-```javascript
-// ## Backnode example
 
-// This is a quick implementation of basic example of what a backnode app could look like
+    // ## Backnode example
 
-var Backnode = require('backnode'),
-Backbone = Backnode.Backbone,
-_ = require('underscore'),
-connect = require('connect'),
-Mustache = require('mustache'),
-md = require('github-flavored-markdown').parse,
-fs = require('fs');
+    // This is a quick implementation of basic example of what a backnode app could look like
 
-// Router - handle incoming request
-var Router = Backnode.Router.extend({
-  routes: {
-    'about':  'about',
-    'search/:page/p:query': 'search'
-  },
+    var Backnode = require('backnode'),
+    Backbone = Backnode.Backbone,
+    _ = require('underscore'),
+    connect = require('connect'),
+    Mustache = require('mustache'),
+    md = require('github-flavored-markdown').parse,
+    fs = require('fs');
 
-  // constructor/initialize. ex: new Router([options])
-  initialize: function initialize() {
-    console.log('Initialize: ', this.routes, arguments);
+    // Router - handle incoming request
+    var Router = Backnode.Router.extend({
+      routes: {
+        'about':  'about',
+        'search/:page/p:query': 'search'
+      },
 
-    // model may be Collections as well
-    this.model = new Pages();
-    this.view = new PageView({model: this.model});
-  },
+      // constructor/initialize. ex: new Router([options])
+      initialize: function initialize() {
+        console.log('Initialize: ', this.routes, arguments);
 
-  about: function about() {
-    // action, do something, usually generates response and res.end
-    this.model.doSomething();
-    this.view.render();
-  },
+        // model may be Collections as well
+        this.model = new Pages();
+        this.view = new PageView({model: this.model});
+      },
 
-  search: function search(page, query) {
-    console.log('Search actions: ', this.model);
-    this.res.end('Search actions' + page + query);
-  }
-});
+      about: function about() {
+        // action, do something, usually generates response and res.end
+        this.model.doSomething();
+        this.view.render();
+      },
 
-// PageView - Backbone.View
+      search: function search(page, query) {
+        console.log('Search actions: ', this.model);
+        this.res.end('Search actions' + page + query);
+      }
+    });
 
-// Get started with views by creating a custom view class. You'll want to override the render function, 
-// specify your template string.
-var PageView = Backnode.View.extend({
+    // PageView - Backbone.View
 
-  // Cache the template function for a single page.
-  template: function template(data) {
-    return Mustache.to_html(this.templateStr, data); 
-  },
+    // Get started with views by creating a custom view class. You'll want to override the render function, 
+    // specify your template string.
+    var PageView = Backnode.View.extend({
 
-  initialize: function initialize(options) {
-    // usually a filesystem call to get template string content.
-    // If Views are initialized at server startup time, sync calls are fine
+      // Cache the template function for a single page.
+      template: function template(data) {
+        return Mustache.to_html(this.templateStr, data); 
+      },
 
-    this.templateStr = fs.readFileSync('page.html').toString();
-  },
+      initialize: function initialize(options) {
+        // usually a filesystem call to get template string content.
+        // If Views are initialized at server startup time, sync calls are fine
 
-  // render - end the response or call this.next()
-  render: function render(model) {
-    model = model || this.model;
+        this.templateStr = fs.readFileSync('page.html').toString();
+      },
 
-    // model must be a collection (to use the same template)
-    model = model instanceof Backnode.Model ? new Pages(model) : model;
-    this.res.end(this.template(model.toJSON()));
-  }
-});
+      // render - end the response or call this.next()
+      render: function render(model) {
+        model = model || this.model;
 
-var Page = Backnode.Model.extend({
-  toJSON: function toJSON() {
-    var page = Backnode.Model.prototype.toJSON.apply(this, arguments);        
-    page.content = md(page.content);
-    return page;
-  }
-});
+        // model must be a collection (to use the same template)
+        model = model instanceof Backnode.Model ? new Pages(model) : model;
+        this.res.end(this.template(model.toJSON()));
+      }
+    });
+
+    var Page = Backnode.Model.extend({
+      toJSON: function toJSON() {
+        var page = Backnode.Model.prototype.toJSON.apply(this, arguments);        
+        page.content = md(page.content);
+        return page;
+      }
+    });
 
 
-var Pages = Backnode.Collection.extend({
-  model: Page,
+    var Pages = Backnode.Collection.extend({
+      model: Page,
 
-  // when created (at server startup), get the list of all pages from the file system
-  // and init the collection. Only called once, and on server startup, go sync
-  initialize: function() {
-    this.fetch();
-  },
+      // when created (at server startup), get the list of all pages from the file system
+      // and init the collection. Only called once, and on server startup, go sync
+      initialize: function() {
+        this.fetch();
+      },
 
-  toJSON: function() {
-    var json = Backnode.Collection.prototype.toJSON.apply(this, arguments);    
-    return {
-      title: 'Backbone on top of Connect for delicious applications',
-      pages: json
+      toJSON: function() {
+        var json = Backnode.Collection.prototype.toJSON.apply(this, arguments);    
+        return {
+          title: 'Backbone on top of Connect for delicious applications',
+          pages: json
+        };
+      },
+
+      getFile: function(file) {
+        return this.filter(function(page) {
+          return page.get('file') === file;
+        })[0];
+      },
+
+      comparator: function(page) {
+        return page.get('file');
+      }
+    });
+
+    // Override `Backbone.sync`
+
+    // The method signature of Backbone.sync is sync(method, model, [options])
+
+    // * method – the CRUD method ("create", "read", "update", or "delete")
+    // * model – the model to be saved (or collection to be read)
+    // * options – success and error callbacks
+
+    Backbone.sync = function(method, model, options, error) {
+      if(method === "read") {
+        // impl something
+      } else if(method === "create") {
+    
+      } else if(method === "update") {
+    
+      } else if(method === "delete") {
+    
+      }
     };
-  },
-
-  getFile: function(file) {
-    return this.filter(function(page) {
-      return page.get('file') === file;
-    })[0];
-  },
-
-  comparator: function(page) {
-    return page.get('file');
-  }
-});
-
-// Override `Backbone.sync`
-
-// The method signature of Backbone.sync is sync(method, model, [options])
-
-// * method – the CRUD method ("create", "read", "update", or "delete")
-// * model – the model to be saved (or collection to be read)
-// * options – success and error callbacks
-
-Backbone.sync = function(method, model, options, error) {
-  if(method === "read") {
-    // impl something
-  } else if(method === "create") {
-    
-  } else if(method === "update") {
-    
-  } else if(method === "delete") {
-    
-  }
-};
 
 
-// a basic connect stack with a backnode middleware
-// it is the server version of a $(function() { new Router(); Backbone.history.start(); })
-connect.createServer()
-  .use(connect.logger())
-  .use(Backnode(new Router))
-  .use(connect.directory(__dirname))
-  .use(connect.static(__dirname))
-  .listen(4000);
-```
+    // a basic connect stack with a backnode middleware
+    // it is the server version of a $(function() { new Router(); Backbone.history.start(); })
+    connect.createServer()
+      .use(connect.logger())
+      .use(Backnode(new Router))
+      .use(connect.directory(__dirname))
+      .use(connect.static(__dirname))
+      .listen(4000);
+      
 
 ## Complete (or nearly)
 
