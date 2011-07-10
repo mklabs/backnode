@@ -1,7 +1,7 @@
   
 // ## Backnode example
 
-// This is a quick implementation of basic example of what a backnode app could look like
+// This is a quick implementation of a basic example of what a backnode app could look like
 
 // ##### Needs to figure out - 
 // how do we hook up in the request/response lifecycle time? 
@@ -36,7 +36,7 @@ var Page, Router, PageView;
 
 Router = Backnode.Router.extend({
   routes: {
-    '':                'about',  // /about
+    '':                     'about',  // /about
     'about':                'about',  // /about
     'wiki':                 'about',  // /about
     'wiki/:page':           'post',   // /blog/blog-post
@@ -101,6 +101,12 @@ Page = Backnode.Model.extend({
 Pages = Backnode.Collection.extend({
   model: Page,
   
+  // when created (at server startup), get the list of all pages from the file system
+  // and init the collection. Only called once, and on server startup, go sync
+  initialize: function() {
+    this.fetch();
+  },
+  
   toJSON: function() {
     var json = Backnode.Collection.prototype.toJSON.apply(this, arguments);    
     return {
@@ -117,12 +123,6 @@ Pages = Backnode.Collection.extend({
   
   comparator: function(page) {
     return page.get('file');
-  },
-  
-  // when created (at server startup), get the list of all pages from the file system
-  // and init the collection. Only called once, and on server startup, go sync
-  initialize: function() {
-    this.fetch();
   }
 });
 
@@ -158,10 +158,11 @@ PageView = Backnode.View.extend({
 // Override `Backbone.sync` to delegate to the filesystem.
 // TODO: cleanup and delegates each method>case in functions/method
 Backbone.sync = function(method, model, options, error) {
+  console.log(arguments);
   
   if(method === "read") {
     if(model.file) {
-      fs.readFile(Path.join(__dirname, 'test/backbonewiki/', model.file), function(err, content) {
+      fs.readFile(Path.join(__dirname, 'backbone-wiki', model.file), function(err, content) {
         if(err) options.error(err);
         
         options.success({
@@ -170,19 +171,23 @@ Backbone.sync = function(method, model, options, error) {
       });
     } else {
       fs.readdir(Path.join(__dirname, 'backbone-wiki'), function(err, files) {
+        console.log(arguments);
         if (err) throw err;
-        var ln = files.length,
-        ret = [];
+        var ext = /\.md$|\.mkd$|\.markdown$/,
+        ret = [], ln;
+        
+        files = files.filter(function(file) {
+          return ext.test(file);
+        });
+        
+        ln = files.length;
+        
         _.each(files, function(file) {
-          var ext = /\.md|\.mkd|\.markdown/,
-          name = file.replace(/\.md|\.mkd|\.markdown/, '');
-
-            // Special case for "app"
-          if (!ext.test(file)) return;
+          name = file.replace(ext, '');
 
           fs.readFile(Path.join(__dirname, 'backbone-wiki', file), function(err, content) {
-
-            if(err) console.log(err);
+            if(err) throw err;
+            
             ret.push({
               title: name,
               file: file,
@@ -190,12 +195,9 @@ Backbone.sync = function(method, model, options, error) {
               content: content.toString()
             });
             
-            if(ln === 1) {
-              console.log(ret);
+            if((ln--) === 1) {
               options.success(ret);
             }
-            
-            ln--;
           });
         });
       });
@@ -204,7 +206,7 @@ Backbone.sync = function(method, model, options, error) {
     
   } else if(method === "update") {
     
-  } else if(method === "create") {
+  } else if(method === "delete") {
     
   }
 };
