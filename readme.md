@@ -1,17 +1,15 @@
 # Backnode
 
-*needs to implement, following is a description of what backnode may look like*
-
 What is Backnode... Like is name tends to introduce, it's somewhat a silly copy of the fantastic Backbone library, a mimick of its API on the server side.
 
 This is a quick implementation, so it may break. I want to develop this for personal use, and for funny experiments, so it hasn't been fully tested against other use-cases.
 
-Backnode hooks in the request/response paradigm in node using either connect or express. It's bundlded and designed as a connect middleware.
+Backnode hooks in the request/response paradigm in node using either connect or express. It's bundled and designed as [a connect middleware](https://github.com/mklabs/backnode/blob/master/lib/backnode.js).
 
 ## Installation
 
     git clone https://github.com/mklabs/backnode
-    cd backnoe
+    cd backnode
     npm link
 
 cd to any other directory, at the root of your project, run
@@ -57,7 +55,9 @@ no model/view auto re-rendering when model changes, ...). On the other hand, on 
 
 ## Basic Usage
 
-##### and desired API
+##### cd to `examples/wiki` and run `node app.js` to test this code.
+
+You may need to install the missing package manually if needed.
 
 ```javascript
 // ## Backnode example
