@@ -109,6 +109,8 @@ var PageView = Backnode.View.extend({
 
 // todo - re-write to use some Store or somethin to split things in methods.
 Backbone.sync = function(method, model, options, error) {
+  console.log('Syncing with method: ', method);
+  console.log('Model is ', model);
   
   if(method === "read") {
     return fs.readdir(Path.join(__dirname, 'backbone-wiki'), function(err, files) {
@@ -156,7 +158,7 @@ Backbone.sync = function(method, model, options, error) {
   
 connect.createServer()
   .use(connect.logger(':method :url :status :res[content-length] - :response-time ms'))
-  .use(Backnode(Router))
+  .use(Backnode(new Router))
   .use(connect.directory(__dirname))
   .use(connect.static(__dirname))
   .listen(4000);
