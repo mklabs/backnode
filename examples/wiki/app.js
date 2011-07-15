@@ -92,18 +92,13 @@ var Pages = Backnode.Collection.extend({
 
 
 var PageView = Backnode.View.extend({
-  template: function(data) {
-    return Mustache.to_html(this.templateStr, data); 
-  },
-  
-  initialize: function(options) {
-    this.templateStr = fs.readFileSync('page.html').toString();
-  },
+  template: 'page.html',
 
   render: function(model) {
     model = model || this.model;
     model = model instanceof Backnode.Model ? new Pages(model) : model;
-    this.res.end(this.template(model.toJSON()));
+    
+    this.res.end(Mustache.to_html(this.template, model.toJSON()));
   }
 });
 
