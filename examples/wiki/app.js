@@ -156,6 +156,8 @@ connect.createServer()
   .use(Backnode(new Router))
   .use(connect.directory(__dirname))
   .use(connect.static(__dirname))
+  .use(function(req, res, next){return next(new Backnode.UrlError('Foobar'))})
+  .use(Backnode.errorHandler({ stack: true }))
   .listen(4000);
 
 console.log('Server started, up and running on port 4000');

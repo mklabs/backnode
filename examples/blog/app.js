@@ -238,6 +238,8 @@ connect.createServer()
   .use(Backnode(new BlogRouter()))
   .use(connect.directory(__dirname))
   .use(connect.static(__dirname))
+  .use(function(req, res, next){return next(new Backnode.UrlError('Foobar'))})
+  .use(Backnode.errorHandler({ stack: true }))
   .listen(5678);  
 console.log('Server started, up and running on port 5678');
 
