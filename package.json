@@ -16,8 +16,11 @@
   "dependencies": {
 	  "connect":    "1.5.1",
 	  "backbone":   "0.5.1",
-	  "underscore": ">=1.1.2",
-	  "mustache":   "0.3.1-dev",
+	  "underscore": ">=1.1.2"
+  },
+  
+  "devDependencies": {
+    "mustache":   "0.3.1-dev",
     "github-flavored-markdown": "1.0.0"
   }
 }
