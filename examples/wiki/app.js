@@ -92,7 +92,7 @@ var Pages = Backnode.Collection.extend({
 
 
 var PageView = Backnode.View.extend({
-  template: 'page.html',
+  template: Path.join(__dirname, 'page.html'),
 
   render: function(model) {
     model = model || this.model;

@@ -70,7 +70,7 @@ var Posts = Backnode.Collection.extend({
 // to the template file.
 
 var Layout = Backnode.View.extend({
-  template: 'theme/default/layout.html',
+  template: Path.join(__dirname, 'theme/default/layout.html'),
 
    // ##### View constructor
    // is when the view instance gets its template file
@@ -90,21 +90,21 @@ var Layout = Backnode.View.extend({
 });
 
 var IndexView = Layout.extend({
-  template: 'theme/default/index.html',
+  template: Path.join(__dirname, 'theme/default/index.html'),
   initialize: function initialize() {
     console.log('init view index:');
   }
 });
 
 var Wrapper = Layout.extend({
-  template: 'theme/default/wrapper.html',
+  template: Path.join(__dirname, 'theme/default/wrapper.html'),
   initialize: function initialize() {
     console.log('init view Wrapper:');
   }
 });
 
 var PostView = Wrapper.extend({
-  template: 'theme/default/index.html',
+  template: Path.join(__dirname, 'theme/default/index.html'),
   initialize: function initialize() {
     console.log('init post view:');
   }
@@ -238,7 +238,7 @@ connect.createServer()
   .use(Backnode(new BlogRouter()))
   .use(connect.directory(__dirname))
   .use(connect.static(__dirname))
-  .use(function(req, res, next){return next(new Backnode.UrlError('Foobar'))})
+  .use(function(req, res, next){return next(new Backnode.UrlError('Foobar'));})
   .use(Backnode.errorHandler({ stack: true }))
   .listen(5678);  
 console.log('Server started, up and running on port 5678');
