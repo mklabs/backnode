@@ -70,12 +70,13 @@ function cache(fn) {
   models = {},
   instances = {};
   return function(model, callback) {
-    console.log('Cache', this, model);
     if(instances[model.cid]) return fn.call(this, model, models[model.cid], instances[model.cid], callback); 
     
     // build schema from model.attributes
-    var att = model.toJSON(),
-    collection = _.isFunction(model.url) ? model.url() : model.url,
+    var collection = _.isFunction(model.url) ? model.url() : model.url,
+    isCol = model instanceof Backnode.Collection,
+    // schema less on collection.
+    att = isCol ? {} : model.toJSON(),
     schema = {},
     db = this.db;
     
