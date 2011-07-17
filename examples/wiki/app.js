@@ -10,6 +10,7 @@ Path = require('path');
 
 // Router - handle incoming request
 var Router = Backnode.Router.extend({
+  name: 'Router',
   routes: {
     '':                     'about',    
     'about':                'about',    
@@ -27,15 +28,15 @@ var Router = Backnode.Router.extend({
     this.view = new PageView({model: this.pages});
   },
   
-  about: function() {
+  about: function about() {
     this.view.render();
   },
   
-  search: function(page, query) {
+  search: function search(page, query) {
     this.view.render();
   },
   
-  post: function(post) {
+  post: function post(post) {
     this.view.render(this.pages.getFile(post));
   }
 });

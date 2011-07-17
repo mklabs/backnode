@@ -112,6 +112,7 @@ var PostView = Wrapper.extend({
 
 // ## Router - handle incoming request
 var BlogRouter = Backnode.Router.extend({
+  name: 'BlogRouter',
   routes: {
     '':                     'index',    
     'article/:article':     'article'
@@ -129,12 +130,12 @@ var BlogRouter = Backnode.Router.extend({
     this.postView = new PostView({model: this.posts});
   },
   
-  index: function() {
+  index: function index() {
     this.indexView.render();
   },
   
-  article: function(article) {
-    this.postView.render(this.posts.get(article));
+  article: function article(art) {
+    this.postView.render(this.posts.get(art));
   }
 });
 
@@ -222,17 +223,8 @@ Backbone.sync = function(method, model, options) {
       });
     });
   });
-
 };
 
-
-
-  
-
-  
-
-
-  
 connect.createServer()
   .use(connect.logger(':method :url :status :res[content-length] - :response-time ms'))
   .use(Backnode(new BlogRouter()))
@@ -240,7 +232,8 @@ connect.createServer()
   .use(connect.static(__dirname))
   .use(function(req, res, next){return next(new Backnode.UrlError('Foobar'));})
   .use(Backnode.errorHandler({ stack: true }))
-  .listen(5678);  
+  .listen(5678);
+  
 console.log('Server started, up and running on port 5678');
 
 
