@@ -3,38 +3,62 @@
 var Backnode = require('../../../lib/backnode'),
 Backbone = Backnode.Backbone,
 _ = require('underscore'),
-connect = require('connect');
+connect = require('connect'),
+Store = require('./store');
 
-var Model = Backnode.Model.extend();
+var Model = Backnode.Model.extend({
+  defaults: {
+    description: 'Testing in memory store'
+  }
+});
+
+var Collection = Backnode.Collection.extend({
+  url: 'memoryStore',
+  model: Model
+});
 
 var Router = Backnode.Router.extend({
   name: 'TodoRouter',
   routes: {
-    '': 'index'
+    'read/:id':       'read',
+    'create/:id':     'create',
+    'update/:id':     'update',
+    'delete/:id':     'delete'
   },
   
   initialize: function init() {
     console.log('Init Router', arguments);
-    this.model = new Model();
+    this.collection = new Collection();
   },
   
-  index: function index() {
-    this.res.end('Hello Backbone');
-  }
+  read: function read(id) {
+    var cb = function(data){this.res.end('-----> ' + JSON.stringify(data));}.bind(this);
+    
+    this.collection
+      .fetch({
+        success: cb,
+        error: cb
+      });
+  },
+  
+  create: function create(id) {
+    var self = this;
+    
+    this.collection.create({id: id},  {
+      success: function(data) {
+        self.res.end('Created/Updated ' + id + ' with ' + JSON.stringify(data));
+      }
+    });
+  },
 });
-
-Backbone.sync = function(method, model, options) {
-  console.log('Syncing with ', arguments);
-  return options.success({foobar: 'yay'});
-};
 
 
 connect.createServer()
   .use(connect.logger(':method :url'))
-  .use(Backnode(new Router))
+  .use(Backnode(new Router(), { store: new Store()}))
   .use(connect.static(__dirname))
   .use(function(){ throw new Backnode.UrlError(); })
   .use(connect.errorHandler({ stack: true }))
-  .listen(8080);
+  .listen(8081);
   
 console.log('Yay started on lolcathost:8080');
