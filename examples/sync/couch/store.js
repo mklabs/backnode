@@ -1,4 +1,15 @@
 
+// ## CouchDB adapter
+
+// using cradle. This is a work in progress. For now,
+// just focus on model creation and collection read.
+
+// todo:
+//  * read support for collection/modles
+//  * update merge
+//  * model create
+//  * deletion support
+
 var Backnode = require('../../../lib/backnode'),
 _ = Backnode._,
 cradle = require('cradle'),
@@ -9,19 +20,20 @@ var Store = module.exports = function Store(options){
   this.db = new(cradle.Connection)().database(options.db);
 };
 
-var item = {};  
-
 _.extend(Store.prototype, {
   read: function(model, callback) {
     console.log('Read: ', model);
     
-    if(model.get('craddle')) {
-      return this.db.get(model.get('craddle'), function(err, res) {
+    // deal with model/collection case
+    if(model instanceof Backnode.Model) {
+      // get from db if we're dealing with a model
+      return this.db.get(model.id, function(err, doc) {
         if(err) callback(err);
-        callback(null, res);
+        callback(null, doc.toJSON());
       });
     }
     
+    // get all otherwise
     this.db.all(function(err, doc) {
       if(err) callback(err);
       callback(null, doc.toJSON());
@@ -31,10 +43,9 @@ _.extend(Store.prototype, {
   },
   
   update: function(model, callback) {
-    console.log('Update: ', model);
+    console.log('Update: ', model.id);
     
-//    this.db.merge(model.cid, model.toJSON(), function(err, res) {
-    this.db.save(model.get('craddle'), model.toJSON(), function(err, res) {
+    this.db.merge(model.id, model.toJSON(), function(err, res) {
       if(err) callback(err);
       callback(null, res);
     });
@@ -43,9 +54,9 @@ _.extend(Store.prototype, {
   },
   
   create: function(model, callback) {
-    console.log('Create: ', model);
+    console.log('Create: ', model.id);
     
-    this.db.save(model.get('craddle'), model.toJSON(), function(err, res) {
+    this.db.save(model.id, model.toJSON(), function(err, res) {
       if(err) callback(err);
       callback(null, res);
     });
