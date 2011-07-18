@@ -34,6 +34,8 @@ The [wiki](https://github.com/mklabs/backnode/wiki) contains more information. D
 * [Stores](https://github.com/mklabs/backnode/wiki/Stores) - persistence strategy, backbone.sync and how to use Store adapters
 * [Error handling](https://github.com/mklabs/backnode/wiki/Error-handling) - connect.errorHandler basic usage and custom route error page
 
+There's also few sample apps in `examples` folder, namely the sync one where the same app.js is used to test different stores (and see how to do it. needs further work, tests, optimization.. but basic sync of models with adapters for [memory](https://github.com/mklabs/backnode/blob/master/examples/sync/memory/store.js), [mongodb](https://github.com/mklabs/backnode/blob/master/examples/sync/mongo/store.js), [couchdb](https://github.com/mklabs/backnode/blob/master/examples/sync/couch/store.js)).
+
 ## Basic usage
 
     
