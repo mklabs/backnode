@@ -1,10 +1,40 @@
 # Backnode
 
-What is Backnode... Like its name tends to introduce, it's somewhat a funny experiment on making Backbone usable in Node. It has special handling on Router and Views so that they can be used outside of the browser where there's no DOM and living document but request/response.
+**Experiment on making Backbone usable in Node**. 
 
-Backnode hooks in the request/response paradigm using either connect or express. It's bundled and designed as [a connect middleware](https://github.com/mklabs/backnode/blob/master/lib/backnode.js).
+It has special handling on Router and Views so that they can be used outside of the browser where there's no DOM and living document but request/response.
+
+Backnode hooks in the request/response paradigm using either [connect](http://senchalabs.github.com/connect/) or [express](http://expressjs.com/). It's bundled and designed as [a connect middleware](https://github.com/mklabs/backnode/blob/master/lib/backnode.js).
 
 The middleware lets you use a Backbone Router to handle incoming requests, the connect middleware uses the router instance passed in and create the according `connect.router` and routes under the hood. Request parameters are added as arguments function.
+    
+Backnode also provides some special handling for [Views](https://github.com/mklabs/backnode/wiki/Views), namely a simple but quite flexible template inheritance. Actually, in the context of server-side use, there is no DOM and Views responding to Model changes. It's all about responding to requests, and generating a response on top of the current model state.
+
+[Stores](https://github.com/mklabs/backnode/wiki/Stores) are adapters used internally by Backbone.sync, the function that Backbone calls every time it tries to read or save a model.
+
+## Installation
+
+    git clone git://github.com/mklabs/backnode.git
+    cd backnode
+    npm link
+
+cd to any other directory, at the root of your project, run
+
+    npm link backnode
+    
+or just create a node_modules folder at the root of the repo and git clone into it.
+
+
+## Documentation
+
+The [wiki](https://github.com/mklabs/backnode/wiki) contains more information. Documentation is growing and changing as the development and testing evolve.
+
+* [Views and template inheritance](https://github.com/mklabs/backnode/wiki/Views)
+* [Views](https://github.com/mklabs/backnode/wiki/Views) - intro, template engine and how to use template inheritance
+* [Stores](https://github.com/mklabs/backnode/wiki/Stores) - persistence strategy, backbone.sync and how to use Store adapters
+* [Error handling](https://github.com/mklabs/backnode/wiki/Error-handling) - connect.errorHandler basic usage and custom route error page
+
+## Basic usage
 
     
     var Backnode = require('backnode'),
@@ -38,36 +68,19 @@ The middleware lets you use a Backbone Router to handle incoming requests, the c
       .listen(8080);
 
     console.log('Server started, up and running on port 8080');
-    
-This is a really basic example, Backnode also provides some special handling for Views, namely a simple but quite flexible template inheritance. Actually, in the context of server-side use, there is no DOM and Views responding to Model changes. It's all about responding to requests, and generating a response on top of a the current model state.
 
-## Installation
-
-    git clone git://github.com/mklabs/backnode.git
-    cd backnode
-    npm link
-
-cd to any other directory, at the root of your project, run
-
-    npm link
-    
-or just create a node_modules folder at the root of the repo and git clone into it.
-
-## Documentation
-
-The [wiki](https://github.com/mklabs/backnode/wiki) contains more information. Documentation is growing and changing as the development and testing evolve.
-
-* [Views and template inheritance](https://github.com/mklabs/backnode/wiki/Views)
 
 ## Motivation
 
 * JavaScript everywhere and consistent API between client/server side code
 * Easy way to get Model, Views, Router (formerly Controller) backbone in express/connect apps.
-* Backbone-Router like interface to handle incoming request
+* Backbone-Router like interface to handle incoming request.
 * Provides just enough level of abstraction to use Backbone features and principles in node
 	* no fancy real-time infrastructure (already plenty of awesome projects on that), goal is just about handling incoming request and generating a response
 * template engine agnostic: just as backbone, the goal is to be able to use any templating engine that takes
 some template string (with an eventual compilation step), data and returns a new string.
+* persistence strategy: Backbone.sync make it easy to use a different persistence layer every time it tries to read or save a model. The goal is to be able to use Models and Collections with a persistence strategy designed for a server-side use, such as the Mongo, Couch, Redis, or even the filesystem. 
+
 
 ## Special Thanks
 
