@@ -2,32 +2,39 @@
 
 var Backnode = require('../../../lib/backnode'),
 Backbone = Backnode.Backbone,
+Path = require('path'),
 _ = require('underscore'),
 connect = require('connect'),
 Store = require('./store'),
 
 tmpl = function tmpl(str,data){return str.replace(/:([a-z]+)/g, function(whole,match){return data[match];});},
 
-layout = '<!doctype html><html><head></head><body><h2>:title</h2><div class="content">:content</div></body></html>';
+Layout, List, Item, Model, Collection, Router;
 
 // todo: avoid this. needed to be able to fecth on initialize
-Backnode(new (Backbone.Router.extend({routes:{}})), { store: new Store()});
+Backnode(new (Backbone.Router.extend({routes:{}})), { store: new Store() });
 
-var Model = Backnode.Model.extend({
+Model = Backnode.Model.extend({
   defaults: {
     description: 'Testing couchdb store',
     craddle: 'using craddle'
   }
 });
 
-var Collection = Backnode.Collection.extend({
+Collection = Backnode.Collection.extend({
   url: 'couchbone',
-  model: Model
+  model: Model,
+  toJSON: function() {
+    var m = Backnode.Collection.prototype.toJSON.apply(this, arguments);
+    require('eyes').inspect(m);
+    return m;
+  }
 });
 
-var Router = Backnode.Router.extend({
+Router = Backnode.Router.extend({
   name: 'TodoRouter',
   routes: {
+    '' :              '',       
     'read/:id':       'read',
     'create/:id':     'create',
     'update/:id':     'update',
@@ -36,22 +43,32 @@ var Router = Backnode.Router.extend({
   
   initialize: function init() {
     console.log('Init Router', arguments);
+    
+    // create ant attach the collection
     this.collection = new Collection();
+    
+    
+    // create and attach the list view, give the view some model too
+    this.list = new List({
+      collection: this.collection
+    });
+    
+    // create and attach item view, models are attached in request handler
+    this.item = new Item();
+    
+    // fetch collection from store on startup
     this.collection.fetch();
   },
   
   read: function read(id) {
-    var cb = function(data){
-      this.res.end(tmpl(layout, {
-        title: 'Read --> ' + id, 
-        content: JSON.stringify(data.toJSON())
-      }));
-    }.bind(this),
-    m = this.collection.get(id);
+    var m = this.collection.get(id);
     
     if(!id) {
       // no params, fetch from collection and return all
-      return this.collection.fetch({ success: cb });
+      return this.collection.fetch({ 
+        success: _.bind(this.list.render, this.list),
+        errror: _.bind(this.list.render, this.list)
+      });
     }
     
     if(!m) {
@@ -60,29 +77,66 @@ var Router = Backnode.Router.extend({
     }
     
     // ok, fetch from model
-    m = m || this.collection;
+    this.item.model = m;
     m.fetch({
-      success: cb,
-      error: cb
+      success: _.bind(this.item.render, this.item),
+      error: _.bind(this.item.render, this.item)
+    });
+  },
+  
+  update: function(id) {
+    var m = this.collection.get(id);
+    
+    if(!m) {
+      // unable to find any entry for provided id
+      return this.next(id + ' does not exist');
+    }
+    
+    this.item.model = m;
+    m.set({
+      description: 'Testing couchdb store' + Math.floor(Math.random()  * 1000)
+    }).save({
+      success: _.bind(this.item.render, this.item),
+      error: _.bind(this.item.render, this.item)
     });
   },
   
   create: function create(id) {
-    // first check if a model with this id was already created    
+    // first check if a model with this id is already created    
     if(this.collection.get(id)) {
       return this.next(id + ' is already created');
     }
     
     // ok, create model by creating it into the collection
-    this.collection.create({id: id},  {
-      success: function(data) {
-        this.res.end(tmpl(layout, {
-          title: 'Created --> ' + id, 
-          content: JSON.stringify(data.toJSON())
-        }));
-      }.bind(this)
+    this.collection.create({identifier: id},  {
+      success: _.bind(this.list.render, this.list),
+      error: _.bind(this.list.render, this.list)
     });
   },
+});
+
+Layout = Backnode.View.extend({
+  template: Path.join(__dirname, 'layout.html'),
+  
+  // layout render
+  render: function render() {
+    // can be used with subclass associated with either model or collection 
+    var m = this.model || this.collection;
+    this.res.end(tmpl(this.template, {
+      title: 'Test couchdb',
+      content: JSON.stringify(m.toJSON())
+    }));
+  }
+});
+
+// link to collection
+List = Layout.extend({
+  template: Path.join(__dirname, 'list.html')
+});
+
+// link to a single model
+Item = Layout.extend({
+  template: Path.join(__dirname, 'item.html')
 });
 
 

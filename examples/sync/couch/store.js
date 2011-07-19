@@ -22,7 +22,7 @@ var Store = module.exports = function Store(options){
 
 _.extend(Store.prototype, {
   read: function(model, callback) {
-    console.log('Read: ', model);
+    console.log('Read: ', model.id);
     
     // deal with model/collection case
     if(model instanceof Backnode.Model) {
