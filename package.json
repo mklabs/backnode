@@ -1,26 +1,24 @@
 {
   "author": "Mickael Daniel",
   "name": "backnode",
-  "version": "0.0.1",
-  "description": "backbone way of doing things in node, a connect/express extension",
-  "keywords" : ["backbone", "mvc"],
+  "version": "0.0.2",
+  "description": "Backbone way of doing things in node",
+  "keywords": ["backbone", "mvc"],
   "homepage": "https://github.com/mklabs/backnode",
   "repository": {
-	"type": "git",
-	  "url": "git://github.com/mklabs/backnode.git"
+    "type": "git",
+    "url": "git://github.com/mklabs/backnode.git"
   },
   "main": "lib/backnode",
   "engines": {
-	  "node": ">= 0.4.1 < 0.5.0"
+    "node": ">= 0.5.0 < 0.7.0"
   },
   "dependencies": {
-	  "connect":    "1.5.1",
-	  "backbone":   "0.5.1",
-	  "underscore": ">=1.1.2"
+    "underscore": "~1.3.1",
+    "backbone": "~0.9.1",
+    "connect": "~2.0.2"
   },
-  
-  "devDependencies": {
-    "mustache":   "0.3.1-dev",
-    "github-flavored-markdown": "1.0.0"
+  "scripts": {
+    "test": "node test/run.js"
   }
 }
