@@ -44,7 +44,6 @@ var fs = require('fs'),
   spawn = require('child_process').spawn;
 
 var testTimeout = 8000,
-  verbose = false,
   failed = [],
   success = [],
   pathPrefix = __dirname;
@@ -59,17 +58,18 @@ runTests(fs.readdirSync(pathPrefix).filter(function (test) {
 //
 // Test helpers
 //
-function runTest(test, callback) {
-  var child = spawn(process.execPath, [ path.join(__dirname, test) ]),
+function runTest(test, o, callback) {
+  var child = spawn(process.execPath, [ path.join(__dirname, test) ], o),
+    over = !!opts.over,
     stdout = '',
     stderr = '',
     killTimeout;
 
-  child.stdout.on('data', function (chunk) {
+  over || child.stdout.on('data', function (chunk) {
     stdout += chunk;
   });
 
-  child.stderr.on('data', function (chunk) {
+  over || child.stderr.on('data', function (chunk) {
     stderr += chunk;
   });
 
@@ -86,16 +86,13 @@ function runTest(test, callback) {
 
     (exitCode ? failed : success).push(test);
 
-    if (exitCode || verbose) {
-      console.log('stdout:');
+    if (exitCode || opts.log) {
       process.stdout.write(stdout);
-
-      console.log('stderr:');
       process.stdout.write(stderr);
     }
 
     callback();
-  })
+  });
 }
 
 function runTests(tests) {
@@ -104,6 +101,9 @@ function runTests(tests) {
   console.log('Running tests:');
 
   if(!tests.length) return console.log('No test to run buddy');
+
+  var spawnOpts = {};
+  if(opts.over) spawnOpts.customFds = [0, 1, 2];
 
   function next() {
     if (index === tests.length - 1) {
@@ -119,9 +119,9 @@ function runTests(tests) {
 
       process.exit(failed.length);
     }
-    runTest(tests[++index], next);
+    runTest(tests[++index], spawnOpts, next);
   }
-  runTest(tests[0], next);
+  runTest(tests[0], spawnOpts, next);
 }
 
 // extract npm config information from process.env and process.argv and returns
