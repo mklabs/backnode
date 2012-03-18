@@ -51,7 +51,7 @@ var TestRouter = backnode.Router.extend({
 });
 
 
-app.use('foo', new TestRouter);
+app.use('/prefix', new TestRouter);
 app.use(new TestRouter);
 
 
@@ -94,6 +94,20 @@ var server = app.listen(3000, function() {
   });
 
   get('/param/yo', function(res) {
+    assert.equal(res.status, 200);
+    assert.equal(res.text, 'yo!');
+    done();
+  });
+
+
+  // subpath mounted router
+  get('/prefix/param/hola', function(res) {
+    assert.equal(res.status, 200);
+    assert.equal(res.text, 'hola!');
+    done();
+  });
+
+  get('/prefix/param/yo', function(res) {
     assert.equal(res.status, 200);
     assert.equal(res.text, 'yo!');
     done();
