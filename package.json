@@ -3,7 +3,10 @@
   "name": "backnode",
   "version": "0.0.2",
   "description": "Backbone way of doing things in node",
-  "keywords": ["backbone", "mvc"],
+  "keywords": [
+    "backbone",
+    "mvc"
+  ],
   "homepage": "https://github.com/mklabs/backnode",
   "repository": {
     "type": "git",
@@ -18,7 +21,11 @@
     "backbone": "~0.9.1",
     "connect": "~2.0.2"
   },
+  "devDependencies": {
+    "superagent": "~0.4.0"
+  },
   "scripts": {
-    "test": "node test/run.js"
+    "test": "node test/run.js --log",
+    "debug": "node --debug-brk test/run.js"
   }
 }
