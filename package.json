@@ -2,11 +2,8 @@
   "author": "mkklabs",
   "name": "backnode",
   "version": "0.1.0",
-  "description": "Backbone way of doing things in node",
-  "keywords": [
-    "backbone",
-    "mvc"
-  ],
+  "description": "Express inspired web development framework, built on Backbone and Connect",
+  "keywords": ["backbone", "mvc"],
   "homepage": "https://github.com/mklabs/backnode",
   "repository": {
     "type": "git",
@@ -28,7 +25,7 @@
     "superagent": "~0.4.0"
   },
   "scripts": {
-    "test": "node test/run.js --log",
+    "test": "node test/run.js",
     "debug": "node --debug-brk test/run.js"
   }
 }
