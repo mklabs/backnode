@@ -19,7 +19,8 @@ var TestRouter = backnode.Router.extend({
   routes: {
     '/basic'                  : 'basic',
     '/view'                   : 'view',
-    '/model'                  : 'model'
+    '/model'                  : 'model',
+    '/el'                     : 'el'
   },
 
   basic: function basic(res) {
@@ -52,6 +53,18 @@ var TestRouter = backnode.Router.extend({
     });
   },
 
+  el: function el(res) {
+    var view = new backnode.View({
+      id: 'index.html',
+      model: new backnode.Model(this.data()),
+      root: app.get('views')
+    });
+
+    view.render().on('render', function(str) {
+      res.end(view.el);
+    });
+  },
+
   data: function data(o) {
     return _.extend({}, {
       libs: Object.keys(pkg.dependencies).sort(),
@@ -81,6 +94,20 @@ var server = app.listen(3000, function() {
     assert.equal(res.text, fixture('response.html'));
     done();
   });
+
+  get('/el', function(res) {
+    assert.equal(res.status, 200);
+    assert.equal(res.text, fixture('response.html'));
+    done();
+  });
+
+  /* * /
+  get('/pipe', function(res) {
+    assert.equal(res.status, 200);
+    assert.equal(res.text, fixture('response.html'));
+    done();
+  });
+  /* */
 
 });
 
