@@ -21,16 +21,16 @@ app.engine('.jade', backnode.engines.jade);
 function request(path, options, fn){
   options = options || {};
 
-  var client = http.createClient(80, 'github.com');
+  var endpoint = 'github.com',
+    p = proxy ? url.parse(proxy) : {};
 
-  var subpath = '/api/v2/json' + path,
-    endpoint = 'github.com';
+  if(p.hostname) options.host = p.hostname || options.host;
+  if(p.port) options.port = p.port || options.port;
 
-  var p = proxy ? url.parse(proxy) : {};
-  options.host = p.hostname || options.host;
-  options.port = p.port || options.port;
-  options.path = p.protocol + '//' + join(endpoint, '/api/v2/json' + path) || options.path;
+  options.path = p.protocol ? p.protocol + '//' + join(endpoint, '/api/v2/json', path) : join('/api/v2/json', path);
   options.path = options.path.replace(/\\/g, '/');
+
+  options.host = options.host || endpoint;
 
   var req = http.request(options);
   req.on('response', function(res){
