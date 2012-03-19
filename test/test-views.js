@@ -84,8 +84,8 @@ var TestRouter = backnode.Router.extend({
       root: app.get('views')
     });
 
-    var ws = fs.createWriteStream(path.join(app.get('views'), 'writeStream.html'));
-    view.pipe([res, ws]);
+    var file = path.join(app.get('views'), 'writeStream.html');
+    view.pipe(fs.createWriteStream(file)).pipe(res);
   },
 
 

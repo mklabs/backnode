@@ -13,7 +13,7 @@ app.use(backnode.logger('dev'));
 
 var TestRouter = backnode.Router.extend({
   routes: {
-    '/json': 'json'
+    '/json'       : 'json'
   },
 
   json: function post(res) {
