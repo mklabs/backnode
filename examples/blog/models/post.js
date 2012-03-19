@@ -1,63 +1,72 @@
 
+var backnode = require('../../../');
+
 // Fake data store
 
-var ids = 0
-  , db = {};
+var ids = 0,
+  db = {};
 
-var Post = exports = module.exports = function Post(title, body) {
-  this.id = ++ids;
-  this.title = title;
-  this.body = body;
-  this.createdAt = new Date;
-};
+var Post = module.exports = backnode.Model.extend({
+  defaults: {
+    title: 'Default title'
+  },
 
-Post.prototype.save = function(fn){
-  db[this.id] = this;
-  fn();
-};
+  initialize: function() {
+    this.id = ++ids;
+    this.set('createdAt', new Date);
+  },
 
-Post.prototype.validate = function(fn){
-  if (!this.title) return fn(new Error('title required'));
-  if (!this.body) return fn(new Error('body required'));
-  if (this.body.length < 10) {
-    return fn(new Error(
-        'body should be at least **10** characters long, was only ' + this.title.length));
+  // will ideally do this by overriding Backbone.sync or this model's
+  // sync
+  save: function(cb) {
+    db[this.id] = this;
+    cb();
+  },
+
+  update: function(data, fn) {
+    this.set('updatedAt', new Date);
+    this.set(data);
+    this.save(fn);
+  },
+
+  validate: function(attrs) {
+    var cb, err;
+    if(typeof attrs === 'function') cb = attrs, attrs = this.toJSON();
+    if (!attrs.title) err = new Error('title required');
+    else if (!attrs.body) err = new Error('body required');
+    else if (attrs.body.length < 10) err = new Error(
+      'body should be at least **10** characters long, was only ' + attrs.body.length
+    );
+
+    cb && cb(err);
+    return err;
+  },
+
+  toJSON: function toJSON() {
+    var o = backnode.Model.prototype.toJSON.call(this);
+    o.id = this.id;
+    return o;
   }
-  fn();
-};
 
+});
 
-Post.prototype.update = function(data, fn){
-  this.updatedAt = new Date;
-  for (var key in data) {
-    if (undefined != data[key]) {
-      this[key] = data[key];
-    }
-  }
-  this.save(fn);
-};
-
-Post.prototype.destroy = function(fn){
-  exports.destroy(this.id, fn);
-};
-
-exports.count = function(fn){
+Post.count = function(fn){
   fn(null, Object.keys(db).length);
 };
 
-exports.all = function(fn){
-  var arr = Object.keys(db).reduce(function(arr, id){
-    arr.push(db[id]);
+Post.all = function(fn){
+  var arr = Object.keys(db).reduce(function(arr, id) {
+    arr.push(db[id].toJSON());
     return arr;
   }, []);
   fn(null, arr);
 };
 
-exports.get = function(id, fn){
+Post.get = function(id, fn){
   fn(null, db[id]);
 };
 
-exports.destroy = function(id, fn) {
+Post.destroy = function(id, fn) {
   if (db[id]) {
     delete db[id];
     fn();
@@ -65,3 +74,4 @@ exports.destroy = function(id, fn) {
     fn(new Error('post ' + id + ' does not exist'));
   }
 };
+

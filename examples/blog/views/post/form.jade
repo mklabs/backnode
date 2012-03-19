@@ -8,8 +8,8 @@ block content
 
   include ../messages
 
-  form#post(action='/post' + (post.title ? '/' + post.id : ''), method='post')
-    if post.title
+  form#post(action='/post' + (update ? '/' + post.id : ''), method='post')
+    if update
       input(type='hidden', name='_method', value='put')
     p
       label(for='post[title]') Title:
@@ -18,5 +18,5 @@ block content
       label(for='post[body]') Body:
       textarea(name='post[body]')= post.body || ''
     p
-      input(type='submit', value=post.title ? 'Update' : 'Create')
+      input(type='submit', value=update ? 'Update' : 'Create')
     

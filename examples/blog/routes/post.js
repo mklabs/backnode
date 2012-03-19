@@ -1,96 +1,90 @@
 
-/**
- * Module dependencies.
- */
 
-var basicAuth = require('../../../lib/express').basicAuth
-  , Post = require('../models/post');
+var backnode = require('../../../'),
+  basicAuth = backnode.basicAuth,
+  Post = require('../models/post');
 
-module.exports = function(app){
-  /**
-   * Apply basic auth to all post related routes
-   */
+module.exports = backnode.Router.extend({
+  routes: {
+    '/post/add'         : 'add',
+    '/post/:post'       : 'display',
+    '/post/:post/edit'  : 'edit',
+    'POST post'         : 'save',
+    'PUT /post/:post'   : 'update'
+  },
 
-  app.all('/post(/*)?', basicAuth(function(user, pass){
-    return 'admin' == user && 'express' == pass;
-  }));
+  initialize: function initialize() {
+    // setup the stack of middleware to run through for this router
+    // before reaching action handler
+    this.use(basicAuth(this.auth));
+  },
 
-  /**
-   * Map :post to the database, loading
-   * every time :post is present.
-   */
+  // apply basic auth to all post related routes
+  auth: function auth(user, pass) {
+    return user === 'admin' && pass === 'backnode';
+  },
 
-  app.param('post', function(req, res, next, id){
-    Post.get(id, function(err, post){
-      if (err) return next(err);
-      if (!post) return next(new Error('failed to load post ' + id));
-      req.post = post;
-      next();
+  display: function post(id, res) {
+    Post.get(id, function(err, post) {
+      if (err) return res.next(err);
+      if (!post) return res.next(new Error('failed to load post ' + id));
+      res.render('post', { post: post.toJSON() });
     });
-  });
+  },
 
-  /**
-   * Add a post.
-   */
+  add: function add(res) {
+    var session = res.req.session,
+      post = session.post || {};
 
-  app.get('/post/add', function(req, res){
-    res.render('post/form', { post: {}});
-  });
+    res.render('post/form', { post: post, update: false });
+  },
 
-  /**
-   * Save a post.
-   */
+  edit: function edit(id, res) {
+    Post.get(id, function(err, post) {
+      if (err) return res.next(err);
+      if (!post) return res.next(new Error('failed to load post ' + id));
+      res.render('post/form', { post: post.toJSON(), update: true });
+    });
+  },
 
-  app.post('/post', function(req, res){
-    var data = req.body.post || {}
-      , post = new Post(data.title, data.body);
-    
-    post.validate(function(err){
+  save: function save(res) {
+    var req = res.req,
+      data = req.body.post || {},
+      post = new Post(data);
+
+    post.validate(function(err) {
+      console.log('validate', err);
       if (err) {
         req.session.error = err.message;
+        req.session.post = post;
         return res.redirect('back');
       }
 
-      post.save(function(err){
+      post.save(function(err) {
         req.session.message = 'Successfully created the post.';
         res.redirect('/post/' + post.id);
-      });  
-    });
-  });
-
-  /**
-   * Display the post.
-   */
-
-  app.get('/post/:post', function(req, res){
-    res.render('post', { post: req.post });
-  });
-
-  /**
-   * Display the post edit form.
-   */
-
-  app.get('/post/:post/edit', function(req, res){
-    res.render('post/form', { post: req.post });
-  });
-
-  /**
-   * Update post. Typically a data layer would handle this stuff.
-   */
-
-  app.put('/post/:post', function(req, res, next){
-    var post = req.post;
-    post.validate(function(err){
-      if (err) {
-        req.session.error = err.message;
-        return res.redirect('back');
-      }
-
-      post.update(req.body.post, function(err){
-        if (err) return next(err);
-        req.session.message = 'Successfully updated post';
-        res.redirect('back');
       });
     });
-  });
-};
+  },
+
+  update: function update(id, res) {
+    var req = res.req;
+    Post.get(id, function(err, post) {
+      if (err) return res.next(err);
+      if (!post) return res.next(new Error('failed to load post ' + id));
+      post.validate(function(err) {
+        if (err) {
+          req.session.error = err.message;
+          return res.redirect('back');
+        }
+
+        post.update(req.body.post, function(err){
+          if (err) return res.next(err);
+          req.session.message = 'Successfully updated post';
+          res.redirect('back');
+        });
+      });
+    });
+  }
+});
+
