@@ -20,7 +20,9 @@ var TestRouter = backnode.Router.extend({
     '/basic'                  : 'basic',
     '/view'                   : 'view',
     '/model'                  : 'model',
-    '/el'                     : 'el'
+    '/el'                     : 'el',
+    '/pipe'                   : 'pipe',
+    '/pipes'                  : 'pipes'
   },
 
   basic: function basic(res) {
@@ -65,6 +67,28 @@ var TestRouter = backnode.Router.extend({
     });
   },
 
+  pipe: function pipe(res) {
+    var view = new backnode.View({
+      id: 'index.html',
+      model: new backnode.Model(this.data()),
+      root: app.get('views')
+    });
+
+    view.pipe(res);
+  },
+
+  pipes: function pipe(res) {
+    var view = new backnode.View({
+      id: 'index.html',
+      model: new backnode.Model(this.data()),
+      root: app.get('views')
+    });
+
+    var ws = fs.createWriteStream(path.join(app.get('views'), 'writeStream.html'));
+    view.pipe([res, ws]);
+  },
+
+
   data: function data(o) {
     return _.extend({}, {
       libs: Object.keys(pkg.dependencies).sort(),
@@ -101,14 +125,18 @@ var server = app.listen(3000, function() {
     done();
   });
 
-  /* * /
   get('/pipe', function(res) {
     assert.equal(res.status, 200);
     assert.equal(res.text, fixture('response.html'));
     done();
   });
-  /* */
 
+  get('/pipes', function(res) {
+    assert.equal(res.status, 200);
+    assert.equal(res.text, fixture('response.html'));
+    assert.equal(fixture('writeStream.html'), fixture('response.html'));
+    done();
+  });
 });
 
 
