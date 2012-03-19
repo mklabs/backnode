@@ -1,5 +1,5 @@
 {
-  "author": "mkklabs",
+  "author": "mklabs",
   "name": "backnode",
   "version": "0.1.0",
   "description": "Express inspired web development framework, built on Backbone and Connect",
