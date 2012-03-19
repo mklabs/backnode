@@ -18,18 +18,45 @@ var pkg = require(path.join(__dirname, '../package'));
 var TestRouter = backnode.Router.extend({
   routes: {
     '/basic'                  : 'basic',
-    '/foo'                    : 'foo',
-    'without-trailing-slash'  : 'without',
-    'GET /verb'               : 'verb',
-    'POST /verb'              : 'verb',
-    '/param/:param'           : 'param'
+    '/view'                   : 'view',
+    '/model'                  : 'model'
   },
 
   basic: function basic(res) {
-    res.render('index', {
+    res.render('index', this.data());
+  },
+
+  view: function view(res) {
+    var view = new backnode.View({
+      id: 'index.html',
+      engines: app.engines,
+      root: app.get('views')
+    });
+
+    view.render(this.data(), function(e, str) {
+      if(e) return res.next(e);
+      res.end(str);
+    });
+  },
+
+  model: function model(res) {
+    var view = new backnode.View({
+      id: 'index.html',
+      model: new backnode.Model(this.data()),
+      root: app.get('views')
+    });
+
+    view.render(function(e, str) {
+      if(e) return res.next(e);
+      res.end(str);
+    });
+  },
+
+  data: function data(o) {
+    return _.extend({}, {
       libs: Object.keys(pkg.dependencies).sort(),
       pkg: pkg
-    });
+    }, o);
   }
 });
 
@@ -38,6 +65,18 @@ app.use(new TestRouter);
 var server = app.listen(3000, function() {
 
   get('/basic', function(res) {
+    assert.equal(res.status, 200);
+    assert.equal(res.text, fixture('response.html'));
+    done();
+  });
+
+  get('/view', function(res) {
+    assert.equal(res.status, 200);
+    assert.equal(res.text, fixture('response.html'));
+    done();
+  });
+
+  get('/model', function(res) {
     assert.equal(res.status, 200);
     assert.equal(res.text, fixture('response.html'));
     done();
