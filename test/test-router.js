@@ -50,7 +50,6 @@ var TestRouter = backnode.Router.extend({
   }
 });
 
-
 app.use('/prefix', new TestRouter);
 app.use(new TestRouter);
 
